@@ -21,6 +21,10 @@ public class Tokens {
 		return stack.size();
 	}
 
+	public List<Integer> asList() {
+		return List.copyOf(stack);
+	}
+
 	public Integer popFront() {
 		return stack.pollFirst();
 	}
