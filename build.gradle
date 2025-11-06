@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'io.islee'
+version = '1.0.0'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    // gradlew run 의 기본 엔트리 (원하면 바꿔도 됨)
+    mainClass = 'server.ServerMain'
+}
+
+def defaultHost = (project.findProperty("host") ?: "localhost").toString()
+def defaultPort = (project.findProperty("port") ?: "8080").toString()
+
+tasks.register('runServer', JavaExec) {
+    group = 'application'
+    description = 'Run server'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'server.ServerMain'
+    args defaultPort
+}
+
+tasks.register('runClient', JavaExec) {
+    group = 'application'
+    description = 'Run client'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'client.ClientMain'
+    args defaultHost, defaultPort
+}
