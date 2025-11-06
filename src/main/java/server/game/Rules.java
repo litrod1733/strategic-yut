@@ -1,14 +1,17 @@
 package server.game;
 
+import server.util.RandomProvider;
+
 import java.util.*;
 import static server.game.Models.*;
 
 public class Rules {
 	private final Board board;
-	private final Random rnd = new Random();
+	private final RandomProvider rnd;
 
-	public Rules(Board board) {
+	public Rules(Board board, RandomProvider rnd) {
 		this.board = board;
+		this.rnd = rnd;
 	}
 
 	public record MoveResult(boolean captured, String victimId, int newPos) {}
@@ -51,7 +54,7 @@ public class Rules {
 			List<Piece> list = e.getValue();
 			if (list.size() >= 2) {
 				Piece base = list.get(0);
-				for (int i = 0; i < list.size(); i++) {
+				for (int i = 1; i < list.size(); i++) {
 					base.stacked += list.get(i).stacked;
 					list.get(i).stacked = 0;
 				}
