@@ -34,20 +34,20 @@
 ## 프로젝트 구조
 ```yaml
 strategic-yut/
-	├ server/
-	| ├ ServerMain.java
-	| ├ net/ #소켓/라우터
-	| ├ game/ #Board/Rules/Tokens/TurnManager
-	| ├ chat/ #TeamChatService
-	| └ util/ #JsonCodec, IdGen
-	├ client
-	| ├ ClientMain.java
-	| ├ net/ #Connection
-	| └ ui/ #ConsoleUI, CommandParser
-	├ common/
-	| └ dto/ #메시지 DTO/Enums
-	├ tests/ #단위 테스트
-	└ README.md
+ ├ server/
+ | ├ ServerMain.java
+ | ├ net/ #소켓/라우터
+ | ├ game/ #Board/Rules/Tokens/TurnManager
+ | ├ chat/ #TeamChatService
+ | └ util/ #JsonCodec, IdGen
+ ├ client
+ | ├ ClientMain.java
+ | ├ net/ #Connection
+ | └ ui/ #ConsoleUI, CommandParser
+ ├ common/
+ | └ dto/ #메시지 DTO/Enums
+ ├ tests/ #단위 테스트
+ └ README.md
 ```
 
 ---
