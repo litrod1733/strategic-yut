@@ -110,8 +110,7 @@ cd strategic-yut
 - S -> C: `WELCOME`, `LOBBY_STATE`, `TEAMS_FORMED`, `TURN_START`, `CHOOSE_REQUEST`, `CHOOSE_RESULT`, `TOKENS_UPDATED`, `BOARD_UPDATE`, `CAPTURED`, `NEED_ALLOCATE`, `ERROR`, `GAME_END`
 
 예시
-```json
-
+```
 // CHOOSE
 C->S {"type": "CHOOSE", "face": "front"}
 S->C {"type": "CHOOSE_RESULT", "fronts": 3,"outcome": "GUL", "steps": 3}
