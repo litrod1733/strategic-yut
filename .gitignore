@@ -1,16 +1,9 @@
-# Compiled class file
+# ========================================
+# ☕ Java / Gradle / IntelliJ 환경 공용
+# ========================================
+
+# ▶️ Java compiled files
 *.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
 *.jar
 *.war
 *.nar
@@ -19,6 +12,74 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# ▶️ Logs
+*.log
+
+# ▶️ BlueJ files
+*.ctxt
+
+# ▶️ J2ME temporary files
+.mtj.tmp/
+
+# ▶️ JVM crash logs
 hs_err_pid*
 replay_pid*
+
+# ========================================
+# ⚙️ Gradle
+# ========================================
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle build cache
+.gradle-cache/
+.gradle-build/
+.gradle-test-kit/
+
+# ========================================
+# 💻 IntelliJ IDEA / VSCode
+# ========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VSCode project files
+.vscode/
+
+# ========================================
+# 🍎 macOS / System files
+# ========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Thumbnails
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# ========================================
+# 🧪 Test / Coverage
+# ========================================
+/test-output/
+/coverage/
+*.lcov
+*.coverage
+
+# ========================================
+# 🔒 Others
+# ========================================
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*.bak
+*.orig
+
+# Environment / secrets (if used later)
+.env
+*.key
