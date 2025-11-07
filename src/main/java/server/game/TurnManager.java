@@ -69,10 +69,6 @@ public class TurnManager {
 		phase = Phase.CHOOSE;
 	}
 
-	public boolean isMyTurn(String teamId) {
-		return teamId.equals(currentTeamId);
-	}
-
 	private Models.Team findTeam(String id) {
 		for (var t : teams) {
 			if (t.id.equals(id)) {
