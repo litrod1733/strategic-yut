@@ -1,13 +1,13 @@
 package server;
 
-import server.game.TurnManager;
+import server.net.ServerSocketManager;
 
-import java.util.List;
 
 public class ServerMain {
-    public static void main(String[] args) {
-        String port = args.length > 0 ? args[0] : "8080";
-        System.out.println("[Server] Strategic Yut Online starting on :" + port);
+    public static void main(String[] args) throws Exception {
+        int port = (args.length > 0) ? Integer.parseInt(args[0]) : 7777;
+        System.out.println("[Server] Strategic Yut Online starting on: " + port);
 
+        new ServerSocketManager(port).start();
     }
 }

@@ -1,12 +1,10 @@
 package common.dto;
 
-import java.util.Objects;
-
 public class Message {
-	public String type; // 예: "CHOOSE", "MOVE", "CHAT_T", "UPDATE"
-	public Object payload;
+	public final String type; // 예: "CHOOSE", "MOVE", "CHAT_T", "UPDATE"
+	public final Object payload;
 
-	public Message(String type, Objects payload) {
+	public Message(String type, Object payload) {
 		this.type = type;
 		this.payload = payload;
 	}

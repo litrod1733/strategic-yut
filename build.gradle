@@ -15,14 +15,21 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
 
-    testImplementation platform('org.junit:junit-bom:5.10.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 }
 
 test {
     useJUnitPlatform()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 application {
@@ -38,13 +45,14 @@ tasks.register('runServer', JavaExec) {
     description = 'Run server'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'server.ServerMain'
-    args defaultPort
+    args '7777'
 }
 
 tasks.register('runClient', JavaExec) {
     group = 'application'
-    description = 'Run client'
+    description = 'Run client (interactive)'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'client.ClientMain'
-    args defaultHost, defaultPort
+    //args defaultHost, defaultPort
+    standardInput = System.in
 }
