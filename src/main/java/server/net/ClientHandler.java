@@ -31,6 +31,8 @@ public class ClientHandler implements Runnable {
 			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			hub.register(this);
 
+			System.out.println("[Server] connected: " + socket.getRemoteSocketAddress());
+
 			String line;
 			while ((line = in.readLine()) != null) {
 				Message msg = gson.fromJson(line, Message.class);
@@ -40,6 +42,7 @@ public class ClientHandler implements Runnable {
 			System.err.println("[Server] client error: " + e.getMessage());
 		} finally {
 			hub.remove(this);
+			System.out.println("[Server] disconnected: " + socket.getRemoteSocketAddress());
 		}
 	}
 

@@ -32,10 +32,10 @@ public class Router {
 	}
 
 	private void onJoin(Object payload, ClientHandler ch) {
-		var p = asMap(payload);
+		Map<String, Object> p = asMap(payload);
 		ch.setNickname((String) p.getOrDefault("nickname", "anon"));
 		ch.setTeamId((String) p.getOrDefault("teamId", "A"));
-		ch.send((new Message("JOIN_OK", Map.of("teamId", ch.getTeamId(), "nickname", ch.getNickname()))));
+		ch.send(new Message("JOIN_OK", Map.of("teamId", ch.getTeamId(), "nickname", ch.getNickname())));
 		hub.broadcast(new Message("SYS", ch.getNickname() + " joined (" + ch.getTeamId() + ")"));
 	}
 
@@ -84,7 +84,8 @@ public class Router {
 		hub.broadcast(new Message("TURN", turn.getCurrentTeamId()));
 	}
 
-	private Map<?,?> asMap(Object payload) {
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> asMap(Object payload) {
 		JsonElement tree = gson.toJsonTree(payload);
 		return gson.fromJson(tree, Map.class);
 	}

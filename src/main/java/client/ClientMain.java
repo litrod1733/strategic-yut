@@ -3,7 +3,7 @@ package client;
 import client.net.Connection;
 import common.dto.Message;
 
-import java.util.Objects;
+import java.util.Map;
 import java.util.Scanner;
 
 public class ClientMain {
@@ -13,16 +13,113 @@ public class ClientMain {
 
         try (Connection conn = new Connection(host, port)) {
             System.out.println("[Client] connected to " + host + ": " + port);
-            conn.listen(msg -> System.out.println("[Client] recv: " + msg.type + " / " + msg.payload));
+            conn.listen(msg -> {
+                System.out.println("[Client] recv: " + msg.type + " / " + msg.payload);
+            });
+
+            printHelp();
 
             Scanner sc = new Scanner(System.in);
             while (true) {
                 System.out.print("> ");
-                String line = sc.nextLine();
+                if (!sc.hasNextLine()) break;
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
                 if (line.equalsIgnoreCase("exit")) break;
+
+                if (line.startsWith("/")) {
+                    handleCommand(line, conn);
+                    continue;
+                }
+
                 conn.send(new Message("CHAT_ALL", line));
             }
         }
         System.out.println("[Client] bye");
+    }
+
+    private static void handleCommand(String line, Connection conn) {
+        try {
+            if (line.startsWith("/help")) {
+                printHelp();
+                return;
+            }
+
+            if (line.startsWith("/join")) {
+                String[] sp = line.split("\\s+", 3);
+                if (sp.length < 3) {
+                    System.out.println("usage: /join <teamId> <nickname>");
+                    return;
+                }
+                conn.send(new Message("JOIN", Map.of("teamId", sp[1], "nickname", sp[2])));
+                return;
+            }
+
+            if (line.startsWith("/say")) {
+                String text = line.substring(5).trim();
+                if (text.isEmpty()) {
+                    System.out.println("usage: /say <text...>");
+                    return;
+                }
+                conn.send(new Message("CHAT_ALL", text));
+                return;
+            }
+
+            if (line.startsWith("/team")) {
+                String text = line.substring(6).trim();
+                if (text.isEmpty()) {
+                    System.out.println("usage: /team <text...>");
+                    return;
+                }
+                conn.send(new Message("CHAT_T", text));
+                return;
+            }
+
+            if (line.startsWith("/choose")) {
+                String[] sp = line.split("\\s+");
+                if (sp.length != 2) {
+                    System.out.println("usage: /choose <fronts:0~4>");
+                    return;
+                }
+                int fronts = Integer.parseInt(sp[1]);
+                if (fronts < 0 || fronts >4) {
+                    System.out.println("fronts must be 0..4");
+                    return;
+                }
+                conn.send(new Message("CHOOSE", Map.of("fronts", fronts)));
+                return;
+            }
+
+            if (line.startsWith("/move")) {
+                String[] sp = line.split("\\s+");
+                if(sp.length != 3) {
+                    System.out.println("usage: /move <pieceId> <steps>");
+                    return;
+                }
+                String pieceId = sp[1];
+                int steps = Integer.parseInt(sp[2]);
+                conn.send(new Message("MOVE", Map.of("pieceId", pieceId, "steps", steps)));
+                return;
+            }
+
+            System.out.println("unknown command. type /help");
+        } catch (NumberFormatException nfe) {
+            System.out.println("number format error: " + nfe.getMessage());
+        } catch (Exception e) {
+            System.out.println("command error: " + e.getMessage());
+        }
+    }
+
+    private static void printHelp() {
+        System.out.println("""
+          commands:
+          /join <teamId> <nickname>     - set my & nickname (e.g., /join A jason)
+          /say <text...>                - broadcast chat to all
+          /team <text...>               - chat to my team only
+          /choose <fronts:0..4>         - choose yut fronts (0=모, 4=윷)
+          /move <pieceId> <steps>       - move (e.g., /move A1 2)
+          /help                         - show this help
+          exit                          - quit client
+          """);
     }
 }
