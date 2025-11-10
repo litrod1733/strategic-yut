@@ -2,10 +2,13 @@ package server.net;
 
 import com.google.gson.Gson;
 import common.dto.Message;
+import server.game.*;
+import server.util.JavaRandomProvider;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class ServerSocketManager {
@@ -18,11 +21,26 @@ public class ServerSocketManager {
 	}
 
 	public void start() throws IOException {
+		var A = new Models.Team("A");
+		A.pieces.add(new Models.Piece("A1", "A"));
+		A.pieces.add(new Models.Piece("A2", "A"));
+		var B = new Models.Team("B");
+		B.pieces.add(new Models.Piece("B1", "B"));
+		B.pieces.add(new Models.Piece("B2", "B"));
+		var board = new Models.Board();
+		var rules = new Rules(board, new JavaRandomProvider());
+		var turn = new TurnManager(List.of(A, B), rules, List.of("A", "B"));
+		turn.startTurn();
+
+		ConnectionHub hub = new ConnectionHub();
+		Router router = new Router(turn, hub);
+
 		try (ServerSocket server = new ServerSocket(port)) {
 			System.out.println("[Server] listening on: " + port);
 			while (true) {
 				Socket client = server.accept();
-				pool.submit(() -> handleClient(client));
+				System.out.println("[Server] connected: " + client.getRemoteSocketAddress());
+				pool.submit(new ClientHandler(client, router, hub));
 			}
 		}
 	}
