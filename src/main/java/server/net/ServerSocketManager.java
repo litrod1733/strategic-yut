@@ -35,6 +35,14 @@ public class ServerSocketManager {
 		ConnectionHub hub = new ConnectionHub();
 		Router router = new Router(turn, hub);
 
+		ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+		scheduler.scheduleAtFixedRate(
+			() -> hub.pruneStale(30_000L),
+			5,
+			5,
+			TimeUnit.SECONDS
+		);
+
 		try (ServerSocket server = new ServerSocket(port)) {
 			System.out.println("[Server] listening on: " + port);
 			while (true) {

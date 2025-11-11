@@ -16,6 +16,18 @@ public class ConnectionHub {
 		clients.remove(ch);
 	}
 
+	public void pruneStale(long timeoutMs) {
+		long now = System.currentTimeMillis();
+		synchronized (clients) {
+			for (ClientHandler ch : new HashSet<>(clients)) {
+				if (now - ch.getLastSeen() > timeoutMs) {
+					System.out.println("[Server] heartbeat timeout: " + ch);
+					clients.remove(ch);
+					ch.closeQuietly();
+				}
+			}
+		}
+	}
 	public void broadcast(Message msg) {
 		synchronized (clients) {
 			for (ClientHandler ch : clients) ch.send(msg);

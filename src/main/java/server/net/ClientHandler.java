@@ -18,6 +18,8 @@ public class ClientHandler implements Runnable {
 	private String teamId;
 	private String nickname;
 
+	private volatile long lastSeen = System.currentTimeMillis();
+
 	public ClientHandler(Socket socket, Router router, ConnectionHub hub) {
 		this.socket = socket;
 		this.router = router;
@@ -35,6 +37,7 @@ public class ClientHandler implements Runnable {
 
 			String line;
 			while ((line = in.readLine()) != null) {
+				touch();
 				Message msg = gson.fromJson(line, Message.class);
 				router.handle(msg, this);
 			}
@@ -44,6 +47,19 @@ public class ClientHandler implements Runnable {
 			hub.remove(this);
 			System.out.println("[Server] disconnected: " + socket.getRemoteSocketAddress());
 		}
+	}
+
+	public void touch() {
+		lastSeen = System.currentTimeMillis();
+	}
+	public long getLastSeen() {
+		return lastSeen;
+	}
+
+	public void closeQuietly() {
+		try {
+			socket.close();
+		} catch (IOException ignore) {}
 	}
 
 	public void send(Message msg) {

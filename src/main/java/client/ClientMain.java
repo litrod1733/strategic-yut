@@ -17,6 +17,18 @@ public class ClientMain {
                 System.out.println("[Client] recv: " + msg.type + " / " + msg.payload);
             });
 
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(15000);
+                        conn.send(new Message("PING", "keepalive"));
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }, "heartbeat-thread").start();
+
             printHelp();
 
             Scanner sc = new Scanner(System.in);
