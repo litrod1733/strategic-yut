@@ -31,12 +31,12 @@ public class TurnManager {
 	public void applyChoiceFronts(int fronts) {
 		var outcome = Throwing.mapFrontCount(fronts);
 		tokens.addOutcome(outcome);
+		System.out.println("[Turn] " + currentTeamId + " chose fronts=" + fronts + " -> outcome=" + outcome);
 
 		if (Throwing.isExtraThrow(outcome)) {
 			phase = Phase.CHOOSE;
 			return;
 		}
-
 		phase = Phase.ALLOCATE;
 	}
 
@@ -48,18 +48,23 @@ public class TurnManager {
 		var piece = findPiece(my, pieceId);
 
 		var result = rules.movePiece(teams, my, piece, steps, tokens);
+		System.out.println("[Turn] " + currentTeamId + "moved piece " + pieceId +
+			" -> pos=" + result.newPos() +
+			", captured=" + result.captured() +
+			", victim=" + result.victimId());
+
 		rules.tryStack(my);
 		tokens.popFront();
 
-		System.out.printf("[Turn] Team %s moved piece %s -> pos=%d | captured=%s | victim=%s | tokens=%s | phase%s%n",
-			currentTeamId,
-			piece.id,
-			result.newPos(),
-			result.captured(),
-			result.victimId(),
-			tokens.asList(),
-			phase
-		);
+//		System.out.printf("[Turn] Team %s moved piece %s -> pos=%d | captured=%s | victim=%s | tokens=%s | phase%s%n",
+//			currentTeamId,
+//			piece.id,
+//			result.newPos(),
+//			result.captured(),
+//			result.victimId(),
+//			tokens.asList(),
+//			phase
+//		);
 
 		if (!tokens.isEmpty()) {
 			return result;

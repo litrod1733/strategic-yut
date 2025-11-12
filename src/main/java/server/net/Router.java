@@ -39,10 +39,10 @@ public class Router {
 			case "JOIN" -> onJoin(msg.payload, ch);
 			case "CHAT_ALL" -> onChatAll(msg.payload, ch);
 			case "CHAT_T" -> onChatTeam(msg.payload, ch);
-
 			case "CHOOSE" -> onChoose(msg.payload, ch);
 			case "MOVE" -> onMove(msg.payload, ch);
 			case "PING" -> onPing(ch);
+			case "REQ_STATE" -> ch.send(buildState());
 
 			default -> ch.send(new Message("ERROR", Map.of("message", "unknown type: " + msg.type)));
 		}

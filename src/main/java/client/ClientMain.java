@@ -114,6 +114,11 @@ public class ClientMain {
                 return;
             }
 
+            if (line.startsWith("/state")) {
+                conn.send(new Message("REQ_STATE", ""));
+                return;
+            }
+
             System.out.println("unknown command. type /help");
         } catch (NumberFormatException nfe) {
             System.out.println("number format error: " + nfe.getMessage());
