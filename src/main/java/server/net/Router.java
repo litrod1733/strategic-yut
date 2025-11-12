@@ -49,6 +49,7 @@ public class Router {
 	}
 
 	private void onPing(ClientHandler ch) {
+		ch.touch();
 		ch.send(new Message("PONG", "ok"));
 	}
 
@@ -84,18 +85,16 @@ public class Router {
 
 		int fronts = extractInt(payload, "fronts");
 
-		if(turn.getPhase() == TurnManager.Phase.CHOOSE) {
+		if(turn.getPhase() != TurnManager.Phase.CHOOSE) {
 			turn.applyChoiceFronts(fronts);
-
-			hub.broadcast(new Message("TOKENS_UPDATED", turn.getTokens()));
-			if (turn.getPhase() == TurnManager.Phase.ALLOCATE) {
-				hub.broadcast(new Message("PHASE", "ALLOCATE"));
-			} else {
-				hub.broadcast(new Message("PHASE", "CHOOSE"));
-			}
-		} else {
 			ch.send(new Message("ERROR", "not in CHOOSE phase"));
+			return;
 		}
+
+		turn.applyChoiceFronts(fronts);
+
+		hub.broadcast(new Message("CHOOSE_RESULT", Map.of("fronts", fronts)));
+
 		publishTurnState();
 	}
 

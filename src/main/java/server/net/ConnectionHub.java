@@ -37,7 +37,34 @@ public class ConnectionHub {
 	public void broadcastTeam(String teamId, Message msg) {
 		synchronized (clients) {
 			for (ClientHandler ch : clients) {
-				if (teamId != null && teamId.equals(ch.getTeamId())) ch.send(msg);
+				if (teamId != null && teamId.equals(ch.getTeamId())) {
+					ch.send(msg);
+				}
+			}
+		}
+	}
+
+	public Set<ClientHandler> getTeamClients(String teamId) {
+		Set<ClientHandler> result = new HashSet<>();
+		synchronized (clients) {
+			for (ClientHandler ch : clients) {
+				if (teamId != null && teamId.equals(ch.getTeamId())) {
+					result.add(ch);
+				}
+			}
+		}
+		return result;
+	}
+
+	public int getClientCount() {
+		return clients.size();
+	}
+
+	public void debugActiveClients() {
+		synchronized (clients) {
+			System.out.println("[Server] Active clients (" + clients.size() + "):");
+			for (ClientHandler ch : clients) {
+				System.out.println("  - " + ch.getNickname() + " (" + ch.getTeamId() + ")");
 			}
 		}
 	}

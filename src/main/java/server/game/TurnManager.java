@@ -51,6 +51,16 @@ public class TurnManager {
 		rules.tryStack(my);
 		tokens.popFront();
 
+		System.out.printf("[Turn] Team %s moved piece %s -> pos=%d | captured=%s | victim=%s | tokens=%s | phase%s%n",
+			currentTeamId,
+			piece.id,
+			result.newPos(),
+			result.captured(),
+			result.victimId(),
+			tokens.asList(),
+			phase
+		);
+
 		if (!tokens.isEmpty()) {
 			return result;
 		}
