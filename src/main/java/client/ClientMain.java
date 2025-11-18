@@ -23,12 +23,22 @@ public class ClientMain {
                     }
                     case "TOKENS_UPDATED" -> renderFromListener("[HUD] tokens=" + msg.payload);
                     case "PHASE" -> renderFromListener("[HUD] phase=" + msg.payload);
-                    case "TURN" -> renderFromListener("[HUD] turn" + msg.payload);
+                    case "TURN" -> renderFromListener("[HUD] turn=" + msg.payload);
                     case "MOVED" -> {
                         Map<?, ?> m = (Map<?, ?>) msg.payload;
                         String s = String.format("[MOVE] %s steps=%s -> pos%s %s%n", m.get("pieceId"), m.get("steps"), m.get("newPos"),
                           Boolean.TRUE.equals(m.get("captured")) ? "(captured " + m.get("victimId") + ")" : "");
                         renderFromListener(s);
+                    }
+                    case "GAME_END" -> {
+                        Map<?, ?> m = (Map<?, ?>) msg.payload;
+                        Object winner = m.get("winner");
+
+                        renderFromListener("""
+                          ===== GAME END =====
+                          Winner team: %s
+                          ====================
+                          """.formatted(winner));
                     }
                     default -> renderFromListener("[Client] recv: " + msg.type + " / " + msg.payload);
                 }

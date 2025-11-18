@@ -106,10 +106,12 @@ public class Router {
 		hub.broadcast(new Message("PLAYER_COUNT", turn.getPlayers().size()));
 
 		if (turn.getPlayers().size() == 4) {
-			hub.broadcast(new Message("SYS", "All players joined! Game is ready to start."));
+			turn.startGame();
+			hub.broadcast(new Message("SYS", "All players joined! Game started (team " + turn.getCurrentTeamId() + " first)."));
+			hub.broadcast(buildState());
+		} else {
+			ch.send(buildState());
 		}
-
-		ch.send(buildState());
 	}
 
 	private void onChatAll(Object payload, ClientHandler ch) {
@@ -123,6 +125,15 @@ public class Router {
 	}
 
 	private void onChoose(Object payload, ClientHandler ch) {
+		if (!turn.isGameStarted()) {
+			ch.send(new Message("ERROR", "game not started yet"));
+			return;
+		}
+		if (turn.isGameOver()) {
+			ch.send(new Message("ERROR", "game already ended"));
+			return;
+		}
+
 		if (!ensureTurn(ch)) return;
 
 		var map = asMap(payload);
@@ -163,6 +174,16 @@ public class Router {
 	}
 
 	private void onMove(Object payload, ClientHandler ch) {
+		if (!turn.isGameStarted()) {
+			ch.send(new Message("ERROR", "game not started yet"));
+			return;
+		}
+
+		if (turn.isGameOver()) {
+			ch.send(new Message("ERROR", "game already ended"));
+			return;
+		}
+
 		Models.Player me = turn.getPlayer(ch.getNickname());
 		if (me == null || !me.isLeader) {
 			ch.send(new Message("ERROR", "only team leader can move"));
@@ -189,6 +210,10 @@ public class Router {
 
 		hub.broadcast(new Message("MOVED", Map.of("pieceId", pieceId, "steps", steps, "captured", res.captured(), "victimId", res.victimId(), "newPos", res.newPos())));
 		publishTurnState();
+
+		if (turn.isGameOver()) {
+			hub.broadcast(new Message("GAME_END", Map.of("winner", turn.getWinnerTeamId())));
+		}
 	}
 
 	private boolean allPlayersChosen() {

@@ -9,6 +9,8 @@ public class TurnManager {
 	private final Tokens tokens = new Tokens();
 	private final Queue<String> teamOrder = new ArrayDeque<>();
 	private String currentTeamId;
+	private boolean gameStarted = false;
+	private String winnerTeamId = null;
 
 	private final Map<String, Models.Player> players = new HashMap<>();
 
@@ -38,6 +40,16 @@ public class TurnManager {
 		return currentTeamId;
 	}
 
+	public void startGame() {
+		if (gameStarted) return;
+		gameStarted = true;
+		phase = Phase.CHOOSE;
+	}
+
+	public boolean isGameStarted() {
+		return gameStarted;
+	}
+
 	public void startTurn() {
 		phase = Phase.CHOOSE;
 	}
@@ -62,12 +74,17 @@ public class TurnManager {
 		var piece = findPiece(my, pieceId);
 
 		var result = rules.movePiece(teams, my, piece, steps, tokens);
-		System.out.println("[Turn] " + currentTeamId + "moved piece " + pieceId +
-			" -> pos=" + result.newPos() +
-			", captured=" + result.captured() +
-			", victim=" + result.victimId());
+//		System.out.println("[Turn] " + currentTeamId + "moved piece " + pieceId +
+//			" -> pos=" + result.newPos() +
+//			", captured=" + result.captured() +
+//			", victim=" + result.victimId());
 
 		rules.tryStack(my);
+
+		if (winnerTeamId == null && isTeamFinished(my)) {
+			winnerTeamId = my.id;
+		}
+
 		tokens.popFront();
 
 //		System.out.printf("[Turn] Team %s moved piece %s -> pos=%d | captured=%s | victim=%s | tokens=%s | phase%s%n",
@@ -126,5 +143,22 @@ public class TurnManager {
 
 	public List<Models.Team> getTeams() {
 		return teams;
+	}
+
+	public boolean isGameOver() {
+		return winnerTeamId != null;
+	}
+
+	public String getWinnerTeamId() {
+		return winnerTeamId;
+	}
+
+	private boolean isTeamFinished(Team team) {
+		for (Piece p : team.pieces) {
+			if (!p.finished()) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
