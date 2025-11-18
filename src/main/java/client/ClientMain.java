@@ -4,26 +4,33 @@ import client.net.Connection;
 import common.dto.Message;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClientMain {
     public static void main(String[] args) throws Exception {
         String host = args.length > 0 ? args[0] : "localhost";
         int port = args.length > 1 ? Integer.parseInt(args[1]) : 7777;
 
+
         try (Connection conn = new Connection(host, port)) {
             System.out.println("[Client] connected to " + host + ": " + port);
             conn.listen(msg -> {
                 switch (msg.type) {
-                    case "STATE" -> renderState(msg.payload);
-                    case "TOKENS_UPDATED" -> System.out.println("[HUD] tokens=" + msg.payload);
-                    case "PHASE" -> System.out.println("[HUD] phase=" + msg.payload);
-                    case "TURN" -> System.out.println("[HUD] turn" + msg.payload);
+                    case "PONG" -> { return; }
+                    case "STATE" -> {
+                        renderState(msg.payload);
+                        renderFromListener("[STATE updated]");
+                    }
+                    case "TOKENS_UPDATED" -> renderFromListener("[HUD] tokens=" + msg.payload);
+                    case "PHASE" -> renderFromListener("[HUD] phase=" + msg.payload);
+                    case "TURN" -> renderFromListener("[HUD] turn" + msg.payload);
                     case "MOVED" -> {
                         Map<?, ?> m = (Map<?, ?>) msg.payload;
-                        System.out.printf("[MOVE] %s steps=%s -> pos%s %s%n", m.get("pieceId"), m.get("steps"), m.get("newPos"),
+                        String s = String.format("[MOVE] %s steps=%s -> pos%s %s%n", m.get("pieceId"), m.get("steps"), m.get("newPos"),
                           Boolean.TRUE.equals(m.get("captured")) ? "(captured " + m.get("victimId") + ")" : "");
+                        renderFromListener(s);
                     }
-                    default -> System.out.println("[Client] recv: " + msg.type + " / " + msg.payload);
+                    default -> renderFromListener("[Client] recv: " + msg.type + " / " + msg.payload);
                 }
             });
 
@@ -45,7 +52,12 @@ public class ClientMain {
             while (true) {
                 System.out.print("> ");
                 if (!sc.hasNextLine()) break;
-                String line = sc.nextLine().trim();
+                String line = sc.nextLine();
+
+                String sanitized = line.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", "");
+                if (sanitized.isEmpty()) continue;
+
+                line = sanitized.trim();
                 if (line.isEmpty()) continue;
                 if (line.equalsIgnoreCase("exit")) break;
 
@@ -178,5 +190,16 @@ public class ClientMain {
             }
         }
         System.out.println(new String(line));
+    }
+
+    private static final Object OUT_LOCK = new Object();
+
+    private static void renderFromListener(String line) {
+        synchronized (OUT_LOCK) {
+            System.out.print("\r");
+            System.out.println(line);
+            System.out.print("> ");
+            System.out.flush();
+        }
     }
 }
