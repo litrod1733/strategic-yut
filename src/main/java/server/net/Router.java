@@ -107,6 +107,11 @@ public class Router {
 		String pieceId = (String) p.get("pieceId");
 		int steps = ((Number) p.get("steps")).intValue();
 
+		if (!((String)pieceId).startsWith(turn.getCurrentTeamId())) {
+			ch.send(new Message("ERROR", "cannot move opponent piece"));
+			return;
+		}
+
 		if (turn.getPhase() != TurnManager.Phase.ALLOCATE) {
 			ch.send(new Message("ERROR", "not in ALLOCATE phase"));
 			return;
