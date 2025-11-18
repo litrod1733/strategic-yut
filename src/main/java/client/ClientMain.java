@@ -3,8 +3,7 @@ package client;
 import client.net.Connection;
 import common.dto.Message;
 
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class ClientMain {
     public static void main(String[] args) throws Exception {
@@ -14,7 +13,18 @@ public class ClientMain {
         try (Connection conn = new Connection(host, port)) {
             System.out.println("[Client] connected to " + host + ": " + port);
             conn.listen(msg -> {
-                System.out.println("[Client] recv: " + msg.type + " / " + msg.payload);
+                switch (msg.type) {
+                    case "STATE" -> renderState(msg.payload);
+                    case "TOKENS_UPDATED" -> System.out.println("[HUD] tokens=" + msg.payload);
+                    case "PHASE" -> System.out.println("[HUD] phase=" + msg.payload);
+                    case "TURN" -> System.out.println("[HUD] turn" + msg.payload);
+                    case "MOVED" -> {
+                        Map<?, ?> m = (Map<?, ?>) msg.payload;
+                        System.out.printf("[MOVE] %s steps=%s -> pos%s %s%n", m.get("pieceId"), m.get("steps"), m.get("newPos"),
+                          Boolean.TRUE.equals(m.get("captured")) ? "(captured " + m.get("victimId") + ")" : "");
+                    }
+                    default -> System.out.println("[Client] recv: " + msg.type + " / " + msg.payload);
+                }
             });
 
             new Thread(() -> {
@@ -138,5 +148,35 @@ public class ClientMain {
           /help                         - show this help
           exit                          - quit client
           """);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void renderState(Object payload) {
+        Map<String, Object> st = (Map<String, Object>) payload;
+        String turn = (String) st.get("turn");
+        String phase = (String) st.get("phase");
+        List<Integer> tokens = (List<Integer>) st.get("tokens");
+        Map<String, Object> board = (Map<String, Object>) st.get("board");
+        List<Map<String, Object>> teams = (List<Map<String, Object>>) board.get("teams");
+
+        System.out.println("== STATE ==");
+        System.out.printf("turn=%s, phase=%s, tokens=%s%n", turn, phase, tokens);
+
+        int TRACK = 20;
+        char[] line = new char[TRACK + 1];
+        Arrays.fill(line, '.');
+
+        for (Map<String, Object> t : teams) {
+            String tid = (String) t.get("id");
+            List<Map<String, Object>> ps = (List<Map<String, Object>>) t.get("pieces");
+            for (Map<String, Object> p : ps) {
+                int pos = ((Number) p.get("pos")).intValue();
+                if (0 <= pos && pos <= TRACK) {
+                    char mark = "A".equals(tid) ? 'A' : 'B';
+                    line[pos] = mark;
+                }
+            }
+        }
+        System.out.println(new String(line));
     }
 }
