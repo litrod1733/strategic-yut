@@ -112,14 +112,15 @@ public class ClientMain {
             if (line.startsWith("/choose")) {
                 String[] sp = line.split("\\s+");
                 if (sp.length != 2) {
-                    System.out.println("usage: /choose <fronts:0~4>");
+                    System.out.println("usage: /choose <0 or 1>    // 0=back, 1=front");
                     return;
                 }
                 int fronts = Integer.parseInt(sp[1]);
-                if (fronts < 0 || fronts >4) {
-                    System.out.println("fronts must be 0..4");
+                if (fronts != 0 && fronts != 1) {
+                    System.out.println("fronts must be 0 or 1 (0=back, 1=front)");
                     return;
                 }
+                boolean front = (fronts == 1);
                 conn.send(new Message("CHOOSE", Map.of("fronts", fronts)));
                 return;
             }
@@ -155,7 +156,7 @@ public class ClientMain {
           /join <teamId> <nickname>     - set my & nickname (e.g., /join A jason)
           /say <text...>                - broadcast chat to all
           /team <text...>               - chat to my team only
-          /choose <fronts:0..4>         - choose yut fronts (0=모, 4=윷)
+          /choose <0|1>         - choose my yut face (0=back, 1=front)
           /move <pieceId> <steps>       - move (e.g., /move A1 2)
           /help                         - show this help
           exit                          - quit client

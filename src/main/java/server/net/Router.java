@@ -65,10 +65,50 @@ public class Router {
 
 	private void onJoin(Object payload, ClientHandler ch) {
 		Map<String, Object> p = asMap(payload);
-		ch.setNickname((String) p.getOrDefault("nickname", "anon"));
-		ch.setTeamId((String) p.getOrDefault("teamId", "A"));
-		ch.send(new Message("JOIN_OK", Map.of("teamId", ch.getTeamId(), "nickname", ch.getNickname())));
-		hub.broadcast(new Message("SYS", ch.getNickname() + " joined (" + ch.getTeamId() + ")"));
+
+		String nickname = (String) p.getOrDefault("nickname", "anon");
+		String teamId = (String) p.getOrDefault("teamId", "A");
+
+		if (turn.getPlayer(nickname) != null) {
+			ch.send(new Message("ERROR", "Nickname already in use."));
+			return;
+		}
+
+		long teamCount = turn.getPlayers().stream().filter(pl -> pl.teamId.equals(teamId)).count();
+
+		if (teamCount >= 2) {
+			ch.send(new Message("ERROR", "Team " + teamId + " is full."));
+			return;
+		}
+
+		if (turn.getPlayers().size() >= 4) {
+			ch.send(new Message("ERROR", "Game is full (4 players max)."));
+			return;
+		}
+
+		ch.setNickname(nickname);
+		ch.setTeamId(teamId);
+
+		Models.Player player = new Models.Player(nickname, teamId);
+		turn.addPlayer(player);
+
+		boolean hasLeader = turn.getPlayers().stream().anyMatch(pl -> teamId.equals(teamId) && pl.isLeader);
+
+		if (!hasLeader) {
+			player.isLeader = true;
+			hub.broadcastTeam(teamId, new Message("SYS", nickname + " is the team leader."));
+		}
+
+		ch.send(new Message("JOIN_OK", Map.of("teamId", teamId, "nickname", nickname, "isLeader", player.isLeader)));
+
+		hub.broadcast(new Message("SYS", nickname + " joined (" + teamId + ")"));
+
+		hub.broadcast(new Message("PLAYER_COUNT", turn.getPlayers().size()));
+
+		if (turn.getPlayers().size() == 4) {
+			hub.broadcast(new Message("SYS", "All players joined! Game is ready to start."));
+		}
+
 		ch.send(buildState());
 	}
 
@@ -85,22 +125,50 @@ public class Router {
 	private void onChoose(Object payload, ClientHandler ch) {
 		if (!ensureTurn(ch)) return;
 
-		int fronts = extractInt(payload, "fronts");
+		var map = asMap(payload);
+		Object raw = map.get("front");
 
-		if(turn.getPhase() != TurnManager.Phase.CHOOSE) {
-			turn.applyChoiceFronts(fronts);
-			ch.send(new Message("ERROR", "not in CHOOSE phase"));
+		boolean front;
+
+		if (raw instanceof Boolean b) {
+			front = b;
+		} else if (raw instanceof Number n) {
+			front = n.intValue() != 0;
+		} else if (raw instanceof String s) {
+			front = s.equalsIgnoreCase("true") || s.equals("1");
+		} else {
+			ch.send(new Message("ERROR", "front must be boolean or 0/1"));
 			return;
 		}
 
+		Models.Player me = turn.getPlayer(ch.getNickname());
+		if (me == null) {
+			ch.send(new Message("ERROR", "player not joined"));
+			return;
+		}
+
+		me.chosenFront = front;
+
+		hub.broadcastTeam(me.teamId, new Message("SYS", me.id + " chose " + (front ? "앞면" : "뒷면")));
+
+		if (!allPlayersChosen()) {
+			return;
+		}
+
+		int fronts = computeFrontCount();
+		clearChoices();
+
 		turn.applyChoiceFronts(fronts);
-
-		hub.broadcast(new Message("CHOOSE_RESULT", Map.of("fronts", fronts)));
-
 		publishTurnState();
 	}
 
 	private void onMove(Object payload, ClientHandler ch) {
+		Models.Player me = turn.getPlayer(ch.getNickname());
+		if (me == null || !me.isLeader) {
+			ch.send(new Message("ERROR", "only team leader can move"));
+			return;
+		}
+
 		if (!ensureTurn(ch)) return;
 
 		var p = asMap(payload);
@@ -121,6 +189,18 @@ public class Router {
 
 		hub.broadcast(new Message("MOVED", Map.of("pieceId", pieceId, "steps", steps, "captured", res.captured(), "victimId", res.victimId(), "newPos", res.newPos())));
 		publishTurnState();
+	}
+
+	private boolean allPlayersChosen() {
+		return turn.getPlayers().stream().allMatch(p -> p.chosenFront != null);
+	}
+
+	private int computeFrontCount() {
+		return (int) turn.getPlayers().stream().filter(p -> Boolean.TRUE.equals(p.chosenFront)).count();
+	}
+
+	private void clearChoices() {
+		turn.getPlayers().forEach(p -> p.chosenFront = null);
 	}
 
 	private void publishTurnState() {

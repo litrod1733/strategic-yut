@@ -37,6 +37,18 @@ public class Models {
 		}
 	}
 
+	public static class Player {
+		public final String id;
+		public final String teamId;
+		public boolean isLeader = false;
+		public Boolean chosenFront = null;
+
+		public Player(String id, String teamId) {
+			this.id = id;
+			this.teamId = teamId;
+		}
+	}
+
 	// 보드 (20칸)
 	public static class Board {
 		public int clamp(int pos) {

@@ -10,6 +10,8 @@ public class TurnManager {
 	private final Queue<String> teamOrder = new ArrayDeque<>();
 	private String currentTeamId;
 
+	private final Map<String, Models.Player> players = new HashMap<>();
+
 	public enum Phase { CHOOSE, ALLOCATE }
 	private Phase phase = Phase.CHOOSE;
 
@@ -18,6 +20,18 @@ public class TurnManager {
 		this.rules = rules;
 		teamOrder.addAll(teamIds);
 		currentTeamId = teamOrder.peek();
+	}
+
+	public void addPlayer(Models.Player p) {
+		players.put(p.id, p);
+	}
+
+	public Models.Player getPlayer(String nickname) {
+		return players.get(nickname);
+	}
+
+	public Collection<Models.Player> getPlayers() {
+		return players.values();
 	}
 
 	public String getCurrentTeamId() {
