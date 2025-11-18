@@ -3,8 +3,10 @@ package server.net;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import common.dto.Message;
+import server.game.Models;
 import server.game.TurnManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +132,23 @@ public class Router {
 
 	private Map<String, Object> serializeBoard() {
 		Map<String, Object> b = new HashMap<>();
+		List<Map<String, Object>> teamJson = new ArrayList<>();
+		for (var t : turnTeams()) {
+			Map<String, Object> tj = new HashMap<>();
+			tj.put("id", t.id);
+			List<Map<String, Object>> pieces = new ArrayList<>();
+			for (var p : t.pieces) {
+				Map<String, Object> pj = new HashMap<>();
+				pj.put("id", p.id);
+				pj.put("pos", p.pos);
+				pj.put("stacked", p.stacked);
+				pj.put("finished", p.finished());
+				pieces.add(pj);
+			}
+			tj.put("pieces", pieces);
+			teamJson.add(tj);
+		}
+		b.put("teams", teamJson);
 		return b;
 	}
 
@@ -143,5 +162,10 @@ public class Router {
 		if (payload == null) return "";
 		if (payload instanceof String s) return s;
 		return gson.toJson(payload);
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<Models.Team> turnTeams() {
+		return (List<Models.Team>) (List<?>) turn.getTeams();
 	}
 }

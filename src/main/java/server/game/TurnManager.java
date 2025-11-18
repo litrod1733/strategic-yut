@@ -109,4 +109,8 @@ public class TurnManager {
 	public List<Integer> getTokens() {
 		return tokens.asList();
 	}
+
+	public List<Models.Team> getTeams() {
+		return teams;
+	}
 }
