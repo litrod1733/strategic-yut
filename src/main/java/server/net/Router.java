@@ -92,7 +92,7 @@ public class Router {
 		Models.Player player = new Models.Player(nickname, teamId);
 		turn.addPlayer(player);
 
-		boolean hasLeader = turn.getPlayers().stream().anyMatch(pl -> teamId.equals(teamId) && pl.isLeader);
+		boolean hasLeader = turn.getPlayers().stream().anyMatch(pl -> pl.teamId.equals(teamId) && pl.isLeader);
 
 		if (!hasLeader) {
 			player.isLeader = true;

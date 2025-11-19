@@ -1,5 +1,7 @@
 package server.game;
 
+import server.net.ClientHandler;
+
 import java.util.*;
 import static server.game.Models.*;
 
