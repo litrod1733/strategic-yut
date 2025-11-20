@@ -170,6 +170,37 @@ public class Router {
 		clearChoices();
 
 		turn.applyChoiceFronts(fronts);
+
+		String name;
+		boolean extra = false;
+		switch (fronts) {
+			case 0 -> {
+				name = "모";
+				extra = true;
+			}
+			case 1 -> {
+				name = "백도";
+			}
+			case 2 -> {
+				name = "개";
+			}
+			case 3 -> {
+				name = "걸";
+			}
+			case 4 -> {
+				name = "윷";
+				extra = true;
+			}
+			default -> {
+				name = "알 수 없는 결과";
+			}
+		}
+
+		hub.broadcast(new Message("YUT_RESULT", Map.of(
+			"fronts", fronts,
+			"name", name,
+			"extra", extra
+		)));
 		publishTurnState();
 	}
 

@@ -30,6 +30,17 @@ public class ClientMain {
                           Boolean.TRUE.equals(m.get("captured")) ? "(captured " + m.get("victimId") + ")" : "");
                         renderFromListener(s);
                     }
+                    case "YUT_RESULT" -> {
+                        Map<?, ?> m = (Map<?, ?>) msg.payload;
+                        String name = String.valueOf(m.get("name"));
+                        boolean extra = Boolean.TRUE.equals(m.get("extra"));
+
+                        if (extra) {
+                            renderFromListener("['" + name + "' 입니다. 한번 더 윷의 모양을 결정해 주세요.]");
+                        } else {
+                            renderFromListener("['" + name + "' 입니다.]");
+                        }
+                    }
                     case "GAME_END" -> {
                         Map<?, ?> m = (Map<?, ?>) msg.payload;
                         Object winner = m.get("winner");
@@ -182,25 +193,60 @@ public class ClientMain {
         Map<String, Object> board = (Map<String, Object>) st.get("board");
         List<Map<String, Object>> teams = (List<Map<String, Object>>) board.get("teams");
 
-        System.out.println("== STATE ==");
+        System.out.println("===== STATE =====");
         System.out.printf("turn=%s, phase=%s, tokens=%s%n", turn, phase, tokens);
 
-        int TRACK = 20;
-        char[] line = new char[TRACK + 1];
-        Arrays.fill(line, '.');
+        final int SIZE = 5;
+        char[][] g = new char[SIZE][SIZE];
+
+        for (int r = 0; r < SIZE; r++) {
+            Arrays.fill(g[r], ' ');
+        }
+
+        int[][] PATH = {
+          {0,0}, {0,1}, {0,2}, {0,3}, {0,4},
+          {1,0}, {1,1}, {1,3}, {1,4},
+          {2,0}, {2,2}, {2,4},
+          {3,0}, {3,1}, {3,3}, {3,4},
+          {4,0}, {4,1}, {4,2}, {4,3}, {4,4}
+        };
+
+        for (int[] cell : PATH) {
+            int r = cell[0], c = cell[1];
+            g[r][c] = 'o';
+        }
 
         for (Map<String, Object> t : teams) {
             String tid = (String) t.get("id");
-            List<Map<String, Object>> ps = (List<Map<String, Object>>) t.get("pieces");
+            char mark = "A".equals(tid) ? 'A' : 'B';
+            List<Map<String, Object>> ps = (List<Map<String, Object>>)  t.get("pieces");
+
             for (Map<String, Object> p : ps) {
                 int pos = ((Number) p.get("pos")).intValue();
-                if (0 <= pos && pos <= TRACK) {
-                    char mark = "A".equals(tid) ? 'A' : 'B';
-                    line[pos] = mark;
-                }
+                if (pos < 0) continue;
+                if (pos >= PATH.length) pos = PATH.length - 1;
+
+                int r = PATH[pos][0];
+                int c = PATH[pos][1];
+                g[r][c] = mark;
             }
         }
-        System.out.println(new String(line));
+
+        System.out.print("   ");
+        for (int col = 0; col < SIZE; col++) {
+            System.out.print(" " + col + " ");
+        }
+        System.out.println();
+
+        for (int r = 0; r < SIZE; r++) {
+            System.out.print((r + 1) + "  ");
+            for (int c = 0; c < SIZE; c++) {
+                System.out.print(g[r][c] + "  ");
+            }
+            System.out.println();
+        }
+
+        System.out.println("===============");
     }
 
     private static final Object OUT_LOCK = new Object();
